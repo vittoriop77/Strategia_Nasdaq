@@ -460,9 +460,7 @@
                     </div>
                     <div class="ma200-info">
                         📈 ${ticker.percentAboveMA200.toFixed(2)}% sopra MA200<br>
-                        📊 Trend MA200: ${getTrendEmoji(ticker.ma200Trend)} ${ticker.ma200Trend}<br>
                         ${ticker.note ? `💡 ${ticker.note}<br>` : ''}
-                        🎯 Potenziale opportunità
                     </div>
                 `;
                 container.appendChild(card);
@@ -541,11 +539,7 @@
                     <div class="atr-info-box">
                         📊 <strong>ATR: ${ticker.atrPercent.toFixed(2)}%</strong><br>
                         📈 ATR Assoluto: ${ticker.atrAbsolute.toFixed(3)}<br>
-                        📅 Dati: ${ticker.dataPoints} giorni<br>
-                        <span class="volatility-indicator volatility-${volatilityLevel.class}">
-                            ${volatilityLevel.emoji} ${volatilityLevel.text}
-                        </span><br>
-                        🎯 Alta volatilità = Potenziale movimento
+                        🎯 <strong>Target: ${(ticker.currentPrice - (ticker.atrAbsolute / 2)).toFixed(2)}</strong>
                     </div>
                 `;
                 container.appendChild(card);
