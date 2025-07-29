@@ -1,0 +1,11 @@
+{
+  "name": "nasdaq-analyzer-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for NASDAQ Analyzer",
+  "dependencies": {
+    "yahoo-finance2": "^2.10.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

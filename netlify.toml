@@ -1,0 +1,32 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+
+# Reindirizzamenti per SPA
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Configurazione timeout per le funzioni (importante per yahoo-finance2)
+[functions."analyze-stocks"]
+  timeout = 30
+
+[functions."analyze-ma200"] 
+  timeout = 60
+
+[functions."analyze-atr"]
+  timeout = 45
+
+[functions."get-stock-details"]
+  timeout = 15
