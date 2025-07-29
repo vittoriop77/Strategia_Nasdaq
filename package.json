@@ -1,0 +1,30 @@
+{
+  "name": "nasdaq-analyzer",
+  "version": "1.0.0",
+  "description": "NASDAQ 100 Stock Analyzer with Yahoo Finance integration",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "dev": "netlify dev",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "yahoo-finance2": "^2.10.3"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": [
+    "nasdaq",
+    "stock-analysis",
+    "yahoo-finance",
+    "netlify",
+    "serverless"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  }
+}
