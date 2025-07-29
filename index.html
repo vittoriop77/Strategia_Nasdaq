@@ -247,7 +247,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>?? NASDAQ 100 Analyzer</h1>
+        <h1>📊 NASDAQ 100 Analyzer</h1>
         
         <div class="controls">
             <button id="analyzeBtn" class="button" onclick="startAnalysis()">
@@ -273,7 +273,7 @@
                 
                 <div class="controls">
                     <button id="atrAnalysisBtn" class="button" onclick="performATRAnalysis()" style="display: none;">
-                        ?? Analisi Volatilità (ATR > 3%)
+                        📊 Analisi Volatilità (ATR > 3%)
                     </button>
                 </div>
             </div>
@@ -305,7 +305,7 @@
         }
 
         async function fetchNasdaqTickers() {
-            showStatus('?? Scaricamento lista ticker NASDAQ 100...', 'loading');
+            showStatus('📋 Scaricamento lista ticker NASDAQ 100...', 'loading');
             
             try {
                 const response = await fetch('/.netlify/functions/get-tickers');
@@ -322,7 +322,7 @@
         }
 
         async function analyzeStocksForDecline(tickers) {
-            showStatus('?? Analisi cali > 3% in corso...', 'loading');
+            showStatus('📈 Analisi cali > 3% in corso...', 'loading');
             
             try {
                 const response = await fetch('/.netlify/functions/analyze-stocks', {
@@ -357,7 +357,7 @@
             try {
                 // Fase 1: Scarica ticker
                 const tickers = await fetchNasdaqTickers();
-                showStatus(`? Trovati ${tickers.length} ticker. Analisi in corso...`, 'loading');
+                showStatus(`✅ Trovati ${tickers.length} ticker. Analisi in corso...`, 'loading');
 
                 // Fase 2: Analizza ticker per cali > 3%
                 const analysisResult = await analyzeStocksForDecline(tickers);
@@ -365,16 +365,16 @@
                 if (analysisResult.declinedStocks.length > 0) {
                     declinedTickersData = analysisResult.declinedStocks;
                     displayDeclinedTickers(analysisResult.declinedStocks);
-                    showStatus(`? Analisi completata! Trovati ${analysisResult.declinedStocks.length} ticker con calo > 3% su ${analysisResult.totalAnalyzed} analizzati`, 'success');
+                    showStatus(`✅ Analisi completata! Trovati ${analysisResult.declinedStocks.length} ticker con calo > 3% su ${analysisResult.totalAnalyzed} analizzati`, 'success');
                     document.getElementById('detailedAnalysisBtn').style.display = 'block';
                 } else {
-                    showStatus(`?? Nessun ticker trovato con calo superiore al 3% su ${analysisResult.totalAnalyzed} analizzati`, 'success');
+                    showStatus(`ℹ️ Nessun ticker trovato con calo superiore al 3% su ${analysisResult.totalAnalyzed} analizzati`, 'success');
                 }
 
                 resultsEl.style.display = 'block';
 
             } catch (error) {
-                showStatus('? ' + error.message, 'error');
+                showStatus('❌ ' + error.message, 'error');
             } finally {
                 analyzeBtn.disabled = false;
             }
@@ -406,7 +406,7 @@
             const ma200TickersEl = document.getElementById('ma200Tickers');
             
             detailedBtn.disabled = true;
-            showStatus('?? Analisi MA200 in corso... Questo potrebbe richiedere alcuni minuti.', 'loading');
+            showStatus('📊 Analisi MA200 in corso... Questo potrebbe richiedere alcuni minuti.', 'loading');
 
             try {
                 const response = await fetch('/.netlify/functions/analyze-ma200', {
@@ -426,17 +426,17 @@
                 if (data.aboveMA200.length > 0) {
                     ma200TickersData = data.aboveMA200;
                     displayMA200Analysis(data.aboveMA200);
-                    showStatus(`? Analisi MA200 completata! ${data.aboveMA200.length} ticker sopra la media mobile su ${data.totalAnalyzed} analizzati`, 'success');
+                    showStatus(`✅ Analisi MA200 completata! ${data.aboveMA200.length} ticker sopra la media mobile su ${data.totalAnalyzed} analizzati`, 'success');
                     document.getElementById('atrAnalysisBtn').style.display = 'block';
                 } else {
                     ma200TickersEl.innerHTML = '<p style="text-align: center; padding: 40px; color: #7f8c8d; font-size: 1.2em;">Nessun ticker trovato sopra la media mobile a 200 periodi</p>';
-                    showStatus(`?? Nessun ticker sopra la MA200 su ${data.totalAnalyzed} analizzati`, 'success');
+                    showStatus(`ℹ️ Nessun ticker sopra la MA200 su ${data.totalAnalyzed} analizzati`, 'success');
                 }
 
                 detailedResultsEl.style.display = 'block';
 
             } catch (error) {
-                showStatus('? Errore nell\'analisi MA200: ' + error.message, 'error');
+                showStatus('❌ Errore nell\'analisi MA200: ' + error.message, 'error');
             } finally {
                 detailedBtn.disabled = false;
             }
@@ -459,10 +459,10 @@
                         ${ticker.companyName ? `<small>${ticker.companyName}</small>` : ''}
                     </div>
                     <div class="ma200-info">
-                        ?? ${ticker.percentAboveMA200.toFixed(2)}% sopra MA200<br>
-                        ?? Trend MA200: ${getTrendEmoji(ticker.ma200Trend)} ${ticker.ma200Trend}<br>
-                        ${ticker.note ? `?? ${ticker.note}<br>` : ''}
-                        ? Potenziale opportunità
+                        📈 ${ticker.percentAboveMA200.toFixed(2)}% sopra MA200<br>
+                        📊 Trend MA200: ${getTrendEmoji(ticker.ma200Trend)} ${ticker.ma200Trend}<br>
+                        ${ticker.note ? `💡 ${ticker.note}<br>` : ''}
+                        🎯 Potenziale opportunità
                     </div>
                 `;
                 container.appendChild(card);
@@ -471,9 +471,9 @@
 
         function getTrendEmoji(trend) {
             switch(trend) {
-                case 'rialzista': return '??';
-                case 'ribassista': return '??';
-                default: return '??';
+                case 'rialzista': return '📈';
+                case 'ribassista': return '📉';
+                default: return '➡️';
             }
         }
 
@@ -483,7 +483,7 @@
             const atrTickersEl = document.getElementById('atrTickers');
             
             atrBtn.disabled = true;
-            showStatus('?? Analisi ATR in corso... Calcolando volatilità degli ultimi 5 giorni.', 'loading');
+            showStatus('📊 Analisi ATR in corso... Calcolando volatilità degli ultimi 5 giorni.', 'loading');
 
             try {
                 const response = await fetch('/.netlify/functions/analyze-atr', {
@@ -505,16 +505,16 @@
                 
                 if (data.filteredByATR.length > 0) {
                     displayATRAnalysis(data.filteredByATR);
-                    showStatus(`? Analisi ATR completata! ${data.filteredByATR.length} ticker con volatilità > 3% su ${data.totalAnalyzed} analizzati`, 'success');
+                    showStatus(`✅ Analisi ATR completata! ${data.filteredByATR.length} ticker con volatilità > 3% su ${data.totalAnalyzed} analizzati`, 'success');
                 } else {
                     atrTickersEl.innerHTML = '<p style="text-align: center; padding: 40px; color: #7f8c8d; font-size: 1.2em;">Nessun ticker trovato con ATR superiore al 3%</p>';
-                    showStatus(`?? Nessun ticker con ATR > 3% su ${data.totalAnalyzed} analizzati`, 'success');
+                    showStatus(`ℹ️ Nessun ticker con ATR > 3% su ${data.totalAnalyzed} analizzati`, 'success');
                 }
 
                 atrResultsEl.style.display = 'block';
 
             } catch (error) {
-                showStatus('? Errore nell\'analisi ATR: ' + error.message, 'error');
+                showStatus('❌ Errore nell\'analisi ATR: ' + error.message, 'error');
             } finally {
                 atrBtn.disabled = false;
             }
@@ -539,13 +539,13 @@
                         ${ticker.companyName ? `<small>${ticker.companyName}</small>` : ''}
                     </div>
                     <div class="atr-info-box">
-                        ?? <strong>ATR: ${ticker.atrPercent.toFixed(2)}%</strong><br>
-                        ?? ATR Assoluto: ${ticker.atrAbsolute.toFixed(3)}<br>
-                        ?? Dati: ${ticker.dataPoints} giorni<br>
+                        📊 <strong>ATR: ${ticker.atrPercent.toFixed(2)}%</strong><br>
+                        📈 ATR Assoluto: ${ticker.atrAbsolute.toFixed(3)}<br>
+                        📅 Dati: ${ticker.dataPoints} giorni<br>
                         <span class="volatility-indicator volatility-${volatilityLevel.class}">
                             ${volatilityLevel.emoji} ${volatilityLevel.text}
                         </span><br>
-                        ? Alta volatilità = Potenziale movimento
+                        🎯 Alta volatilità = Potenziale movimento
                     </div>
                 `;
                 container.appendChild(card);
@@ -554,11 +554,11 @@
 
         function getVolatilityLevel(atrPercent) {
             if (atrPercent >= 5) {
-                return { class: 'high', emoji: '??', text: 'ALTA VOLATILITÀ' };
+                return { class: 'high', emoji: '🔥', text: 'ALTA VOLATILITÀ' };
             } else if (atrPercent >= 4) {
-                return { class: 'medium', emoji: '?', text: 'Media-Alta' };
+                return { class: 'medium', emoji: '⚡', text: 'Media-Alta' };
             } else {
-                return { class: 'low', emoji: '??', text: 'Moderata' };
+                return { class: 'low', emoji: '📊', text: 'Moderata' };
             }
         }
 
