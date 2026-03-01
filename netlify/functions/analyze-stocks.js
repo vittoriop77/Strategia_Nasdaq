@@ -5,7 +5,6 @@ const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance({
   validation: { logErrors: false },
   cookieJar: false,
-  timeout: 10000,
   suppressNotices: ["yahooSurvey"]
 });
 
@@ -125,4 +124,5 @@ async function analyzeStock(ticker) {
     return null;
   }
 }
+
 
