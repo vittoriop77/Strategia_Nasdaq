@@ -1,16 +1,14 @@
 // netlify/functions/analyze-stocks.js
+const YahooFinance = require('yahoo-finance2').default;  // <-- default è la classe
 
-// Importa la classe (non .default!)
-const YahooFinance = require('yahoo-finance2');
-
-// Crea l'istanza UNA VOLTA (fuori dalle funzioni, per riutilizzarla)
+// Crea l'istanza UNA VOLTA SOLA (fuori dalle funzioni)
 const yahooFinance = new YahooFinance({
-  cookieJar: false,          // OBBLIGATORIO in serverless (Netlify, Vercel, Lambda...)
-  timeout: 15000,            // in millisecondi
-  validateResult: false,     // evita errori su campi mancanti
-  // Opzionale ma utile se Yahoo blocca: user agent custom
-  // queue: { concurrency: 4 }, // se hai molti ticker, limita le richieste simultanee
-  // suppressNotices: ['yahooSurvey'], // elimina avvisi inutili
+  cookieJar: false,           // OBBLIGATORIO in serverless (Netlify, Vercel, Lambda...)
+  timeout: 15000,             // millisecondi
+  validateResult: false,      // disabilita validazione se dà problemi
+  // Opzionale: se Yahoo blocca per user-agent
+  // queue: { concurrency: 4 },  // default è 4, puoi abbassare a 2-3 se rate-limit
+  // suppressNotices: ['yahooSurvey'], // se vedi notice inutili
 });
 
 exports.handler = async (event, context) => {
