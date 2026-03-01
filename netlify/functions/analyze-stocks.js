@@ -1,5 +1,6 @@
 // netlify/functions/analyze-stocks.js
-const { YahooFinance } = require('yahoo-finance2'); // Nuovo import!
+
+const yahooFinance = require('yahoo-finance2').default;
 
 // Configurazione per evitare problemi con cookies in ambiente serverless
 const yahooOptions = {
@@ -7,9 +8,6 @@ const yahooOptions = {
   cookieJar: false,
   timeout: 10000
 };
-
-// **Istanzia la classe YahooFinance**
-const yahooFinance = new YahooFinance(yahooOptions);
 
 exports.handler = async (event, context) => {
   try {
@@ -70,8 +68,8 @@ exports.handler = async (event, context) => {
 
 async function analyzeStock(ticker) {
   try {
-    // Usa le opzioni configurate per evitare problemi con cookies
-    const quote = await yahooFinance.quote(ticker);
+    // Usa le opzioni nella chiamata della funzione
+    const quote = await yahooFinance.quote(ticker, yahooOptions);
 
     if (!quote || !quote.regularMarketPrice || !quote.regularMarketPreviousClose) {
       console.warn(`Dati insufficienti per ${ticker}`);
@@ -99,7 +97,7 @@ async function analyzeStock(ticker) {
     try {
       const simpleQuote = await yahooFinance.quoteSummary(ticker, {
         modules: ['price']
-      });
+      }, yahooOptions);
 
       if (simpleQuote?.price) {
         const price = simpleQuote.price;
