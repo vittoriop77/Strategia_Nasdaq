@@ -1,5 +1,5 @@
 // netlify/functions/analyze-stocks.js
-const yahooFinance = require('yahoo-finance2').default;
+const { YahooFinance } = require('yahoo-finance2'); // Nuovo import!
 
 // Configurazione per evitare problemi con cookies in ambiente serverless
 const yahooOptions = {
@@ -8,23 +8,26 @@ const yahooOptions = {
   timeout: 10000
 };
 
+// **Istanzia la classe YahooFinance**
+const yahooFinance = new YahooFinance(yahooOptions);
+
 exports.handler = async (event, context) => {
   try {
     const { tickers } = JSON.parse(event.body);
-    
+
     if (!tickers || !Array.isArray(tickers)) {
       throw new Error('Lista ticker non valida');
     }
 
     const declinedStocks = [];
     const batchSize = 10; // Processa in batch per evitare rate limiting
-    
+
     for (let i = 0; i < tickers.length; i += batchSize) {
       const batch = tickers.slice(i, i + batchSize);
       const batchResults = await Promise.allSettled(
         batch.map(ticker => analyzeStock(ticker))
       );
-      
+
       batchResults.forEach((result, index) => {
         if (result.status === 'fulfilled' && result.value) {
           const stock = result.value;
@@ -33,26 +36,26 @@ exports.handler = async (event, context) => {
           }
         }
       });
-      
+
       // Piccola pausa tra i batch
       if (i + batchSize < tickers.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-    
+
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         declinedStocks,
         totalAnalyzed: tickers.length,
         declinedCount: declinedStocks.length
       })
     };
-    
+
   } catch (error) {
     return {
       statusCode: 500,
@@ -68,17 +71,17 @@ exports.handler = async (event, context) => {
 async function analyzeStock(ticker) {
   try {
     // Usa le opzioni configurate per evitare problemi con cookies
-    const quote = await yahooFinance.quote(ticker, yahooOptions);
-    
+    const quote = await yahooFinance.quote(ticker);
+
     if (!quote || !quote.regularMarketPrice || !quote.regularMarketPreviousClose) {
       console.warn(`Dati insufficienti per ${ticker}`);
       return null;
     }
-    
+
     const currentPrice = quote.regularMarketPrice;
     const previousClose = quote.regularMarketPreviousClose;
     const changePercent = ((currentPrice - previousClose) / previousClose) * 100;
-    
+
     return {
       symbol: ticker,
       currentPrice: currentPrice,
@@ -88,24 +91,24 @@ async function analyzeStock(ticker) {
       marketCap: quote.marketCap || 0,
       companyName: quote.longName || quote.shortName || ticker
     };
-    
+
   } catch (error) {
     console.error(`Errore analizzando ${ticker}:`, error.message);
-    
+
     // Fallback: prova con una chiamata più semplice
     try {
       const simpleQuote = await yahooFinance.quoteSummary(ticker, {
         modules: ['price']
-      }, yahooOptions);
-      
+      });
+
       if (simpleQuote?.price) {
         const price = simpleQuote.price;
         const currentPrice = price.regularMarketPrice?.raw || price.regularMarketPrice;
         const previousClose = price.regularMarketPreviousClose?.raw || price.regularMarketPreviousClose;
-        
+
         if (currentPrice && previousClose) {
           const changePercent = ((currentPrice - previousClose) / previousClose) * 100;
-          
+
           return {
             symbol: ticker,
             currentPrice: currentPrice,
@@ -120,9 +123,7 @@ async function analyzeStock(ticker) {
     } catch (fallbackError) {
       console.error(`Fallback failed for ${ticker}:`, fallbackError.message);
     }
-    
+
     return null;
   }
 }
-
-
