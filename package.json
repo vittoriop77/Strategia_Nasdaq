@@ -9,7 +9,7 @@
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
-    "yahoo-finance2": "^3.10.0"
+    "yahoo-finance2": "^3.13.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
