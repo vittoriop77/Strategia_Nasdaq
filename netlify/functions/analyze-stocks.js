@@ -1,6 +1,5 @@
 // netlify/functions/analyze-stocks.js
-//const yahooFinance = require('yahoo-finance2').default;
-import yahooFinance from 'yahoo-finance2';
+const yahooFinance = require('yahoo-finance2').default;
 
 // Configurazione per evitare problemi con cookies in ambiente serverless
 const yahooOptions = {
@@ -125,4 +124,5 @@ async function analyzeStock(ticker) {
     return null;
   }
 }
+
 
