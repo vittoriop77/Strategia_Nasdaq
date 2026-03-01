@@ -4,7 +4,7 @@ const YahooFinance = require('yahoo-finance2').default;
 
 const yahooFinance = new YahooFinance({
   validation: { logErrors: false },
-  cookieJar: false,
+  cookieJar: true,
   suppressNotices: ["yahooSurvey"]
 });
 
