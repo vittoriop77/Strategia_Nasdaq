@@ -8,6 +8,8 @@ const yahooFinance = new YahooFinance({
   suppressNotices: ["yahooSurvey"]
 });
 
+// Opzioni opzionali per le chiamate alla libreria yahoo-finance2
+const yahooOptions = {};
 exports.handler = async (event, context) => {
   try {
     const { tickers } = JSON.parse(event.body);
