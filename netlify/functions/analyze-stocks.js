@@ -1,10 +1,22 @@
 // netlify/functions/analyze-stocks.js
 
-const YahooFinance = require('yahoo-finance2').default;
+const yfModule = require('yahoo-finance2');
+const YahooFinance = yfModule.default;
+
+// Usa l'ExtendedCookieJar fornito dal pacchetto (se disponibile)
+const ExtendedCookieJar = yfModule.ExtendedCookieJar || yfModule.extendedCookieJar;
+let cookieJarInstance = undefined;
+if (ExtendedCookieJar) {
+  try {
+    cookieJarInstance = new ExtendedCookieJar();
+  } catch (e) {
+    cookieJarInstance = undefined;
+  }
+}
 
 const yahooFinance = new YahooFinance({
   validation: { logErrors: false },
-  cookieJar: true,
+  cookieJar: cookieJarInstance || true,
   suppressNotices: ["yahooSurvey"]
 });
 
