@@ -1,13 +1,13 @@
 // netlify/functions/analyze-stocks.js
 
-const yahooFinance = require('yahoo-finance2').default;
+const YahooFinance = require('yahoo-finance2').default;
 
-// Configurazione per evitare problemi con cookies in ambiente serverless
-const yahooOptions = {
-  validateResult: false,
+const yahooFinance = new YahooFinance({
+  validation: { logErrors: false },
   cookieJar: false,
-  timeout: 10000
-};
+  timeout: 10000,
+  suppressNotices: ["yahooSurvey"]
+});
 
 exports.handler = async (event, context) => {
   try {
@@ -125,3 +125,4 @@ async function analyzeStock(ticker) {
     return null;
   }
 }
+
