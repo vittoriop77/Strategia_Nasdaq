@@ -1,31 +1,39 @@
 // netlify/functions/analyze-stocks.js
-const { create } = require('yahoo-finance2').default;
+const yahooFinance = require('yahoo-finance2').default;
 
-// Crea un'istanza con le tue opzioni (lo fai una volta sola)
-const yahooFinance = create({
+// Opzioni da passare a ogni chiamata (importante in ambiente serverless)
+const fetchOptions = {
   validateResult: false,
-  cookieJar: false,       // molto importante in ambiente serverless
-  timeout: 10000
-});
+  cookieJar: false,          // fondamentale su Netlify / serverless
+  timeout: 15000,            // aumentato un po' per maggiore stabilità
+  // Se Yahoo inizia a bloccare richieste, prova ad aggiungere:
+  // headers: { 'User-Agent': 'Mozilla/5.0 (compatible; StockAnalyzer/1.0)' }
+};
 
 exports.handler = async (event, context) => {
   try {
-    const { tickers } = JSON.parse(event.body);
+    // Parsa il body (contiene { tickers: ["AAPL", "MSFT", ...] })
+    const { tickers } = JSON.parse(event.body || '{}');
     
-    if (!tickers || !Array.isArray(tickers)) {
-      throw new Error('Lista ticker non valida');
+    if (!tickers || !Array.isArray(tickers) || tickers.length === 0) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Lista ticker non valida o vuota' })
+      };
     }
 
     const declinedStocks = [];
-    const batchSize = 10;
+    const batchSize = 10; // evita rate limiting / blocchi
     
     for (let i = 0; i < tickers.length; i += batchSize) {
       const batch = tickers.slice(i, i + batchSize);
+      
       const batchResults = await Promise.allSettled(
         batch.map(ticker => analyzeStock(ticker))
       );
       
-      batchResults.forEach((result, index) => {
+      batchResults.forEach((result) => {
         if (result.status === 'fulfilled' && result.value) {
           const stock = result.value;
           if (stock.changePercent < -3) {
@@ -34,8 +42,9 @@ exports.handler = async (event, context) => {
         }
       });
       
+      // Pausa tra un batch e l'altro
       if (i + batchSize < tickers.length) {
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1200));
       }
     }
     
@@ -43,9 +52,10 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         declinedStocks,
         totalAnalyzed: tickers.length,
         declinedCount: declinedStocks.length
@@ -53,24 +63,30 @@ exports.handler = async (event, context) => {
     };
     
   } catch (error) {
-    console.error(error);
+    console.error('Errore handler principale:', error);
     return {
       statusCode: 500,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: error.message || 'Errore interno del server' })
     };
   }
 };
 
+/**
+ * Analizza un singolo ticker
+ * @param {string} ticker 
+ * @returns {Promise<object|null>}
+ */
 async function analyzeStock(ticker) {
   try {
-    const quote = await yahooFinance.quote(ticker);
+    // Tentativo principale: quote completa
+    const quote = await yahooFinance.quote(ticker, {}, fetchOptions);
     
     if (!quote?.regularMarketPrice || !quote?.regularMarketPreviousClose) {
-      console.warn(`Dati insufficienti per ${ticker}`);
+      console.warn(`Dati di mercato insufficienti per ${ticker}`);
       return null;
     }
     
@@ -79,42 +95,49 @@ async function analyzeStock(ticker) {
     const changePercent = ((currentPrice - previousClose) / previousClose) * 100;
     
     return {
-      symbol: ticker,
-      currentPrice,
-      previousClose,
-      changePercent,
+      symbol: ticker.toUpperCase(),
+      currentPrice: Number(currentPrice.toFixed(2)),
+      previousClose: Number(previousClose.toFixed(2)),
+      changePercent: Number(changePercent.toFixed(2)),
       volume: quote.regularMarketVolume || 0,
       marketCap: quote.marketCap || 0,
       companyName: quote.longName || quote.shortName || ticker
     };
     
   } catch (error) {
-    console.error(`Errore analizzando ${ticker}:`, error.message);
+    console.error(`Errore primario per ${ticker}: ${error.message}`);
     
-    // Fallback opzionale (puoi anche toglierlo se non serve)
+    // Fallback: solo modulo price
     try {
-      const simple = await yahooFinance.quoteSummary(ticker, { modules: ['price'] });
-      const price = simple?.price;
+      const summary = await yahooFinance.quoteSummary(
+        ticker,
+        { modules: ['price'] },
+        fetchOptions
+      );
+      
+      const price = summary?.price;
       if (!price) return null;
-
+      
       const currentPrice = price.regularMarketPrice?.raw ?? price.regularMarketPrice;
       const previousClose = price.regularMarketPreviousClose?.raw ?? price.regularMarketPreviousClose;
       
-      if (!currentPrice || !previousClose) return null;
+      if (typeof currentPrice !== 'number' || typeof previousClose !== 'number') {
+        return null;
+      }
       
       const changePercent = ((currentPrice - previousClose) / previousClose) * 100;
       
       return {
-        symbol: ticker,
-        currentPrice,
-        previousClose,
-        changePercent,
+        symbol: ticker.toUpperCase(),
+        currentPrice: Number(currentPrice.toFixed(2)),
+        previousClose: Number(previousClose.toFixed(2)),
+        changePercent: Number(changePercent.toFixed(2)),
         volume: price.regularMarketVolume?.raw ?? 0,
         marketCap: price.marketCap?.raw ?? 0,
         companyName: price.longName || price.shortName || ticker
       };
-    } catch (fbError) {
-      console.error(`Fallback fallito per ${ticker}:`, fbError.message);
+    } catch (fallbackError) {
+      console.error(`Fallback fallito per ${ticker}: ${fallbackError.message}`);
       return null;
     }
   }
